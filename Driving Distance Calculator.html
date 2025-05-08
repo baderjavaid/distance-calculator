@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Driving Distance Calculator</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJzv3RX9bTs2d4pwTYCYwt2-XNDlUJtmk&libraries=places"></script>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    input, button { padding: 10px; font-size: 16px; margin-top: 10px; }
+    #results { margin-top: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    h2, h3 { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <h2>Driving Distance Calculator</h2>
+  <label for="origin">Enter Starting Location:</label><br>
+  <input type="text" id="origin" placeholder="e.g. Harrington Park, NSW">
+  <button onclick="calculateDistances()">Calculate Distance</button>
+
+  <div id="results"></div>
+
+  <script>
+    const destinations = [
+      { name: "Melbourne Grand Mosque", address: "70 Wootten Rd, Tarneit VIC 3029" },
+      { name: "Islamic College of Melbourne", address: "83 Wootten Rd, Tarneit VIC 3029" },
+      { name: "Tarneit Station", address: "Derrimut Rd, Tarneit VIC 3029" },
+      { name: "Al-Taqwa College", address: "201 Sayers Rd, Truganina VIC 3029" },
+      { name: "Al Siraat College", address: "45 Harvest Home Rd, Epping VIC 3076" }
+    ];
+
+    function calculateDistances() {
+      const origin = document.getElementById("origin").value.trim();
+      if (!origin) {
+        alert("Please enter a starting location.");
+        return;
+      }
+
+      const service = new google.maps.DistanceMatrixService();
+      const destAddresses = destinations.map(dest => dest.address);
+
+      service.getDistanceMatrix({
+        origins: [origin],
+        destinations: destAddresses,
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+      }, function (response, status) {
+        if (status !== 'OK') {
+          alert('Error: ' + status);
+        } else {
+          showResults(response);
+        }
+      });
+    }
+
+    function showResults(response) {
+      const origin = response.originAddresses[0];
+      const results = response.rows[0].elements;
+
+      let output = `<h3>Distances from: ${origin}</h3><table><tr><th>Destination</th><th>Distance</th><th>Duration</th></tr>`;
+      
+      results.forEach((result, index) => {
+        if (result.status === "OK") {
+          output += `<tr>
+            <td>${destinations[index].name}</td>
+            <td>${result.distance.text}</td>
+            <td>${result.duration.text}</td>
+          </tr>`;
+        } else {
+          output += `<tr><td>${destinations[index].name}</td><td colspan="2">Not available</td></tr>`;
+        }
+      });
+
+      output += "</table>";
+      document.getElementById("results").innerHTML = output;
+    }
+  </script>
+</body>
+</html>
